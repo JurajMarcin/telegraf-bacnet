@@ -1,0 +1,13 @@
+[tool.pyright]
+typeCheckingMode = "strict"
+
+reportMissingTypeStubs = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownLambdaType = false
+reportUnknownVariableType = false
+reportUnknownMemberType = false
+
+executionEnvironments = [
+    { root = "."}
+]
