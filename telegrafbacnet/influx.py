@@ -2,6 +2,7 @@ from multiprocessing import Process, Queue
 from time import time_ns
 from typing import Any
 
+
 class InfluxLine:
     def __init__(self, key: str, value: Any, *tags: tuple[str, Any]) -> None:
         self.key = key

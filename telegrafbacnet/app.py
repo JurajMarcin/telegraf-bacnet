@@ -200,8 +200,8 @@ class TelegrafApplication(BIPSimpleApplication):
             object.properties = tuple(
                 prop.identifier for prop
                 in get_object_class(object_identifier[0]).properties
-                if discovery_group.properties is None \
-                    or str(prop.identifier) in discovery_group.properties
+                if discovery_group.properties is None
+                or str(prop.identifier) in discovery_group.properties
             )
             objects.append(object)
         device.objects = tuple(objects)

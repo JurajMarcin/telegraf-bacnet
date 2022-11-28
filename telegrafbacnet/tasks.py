@@ -52,7 +52,6 @@ class _BaseRecurringTask(OneShotTask):
         self.cancelled = True
 
 
-
 class _BaseIOTask(_BaseRecurringTask):
     def __init__(self, io_controller: IOController, interval: int,
                  offset: float | None = None,

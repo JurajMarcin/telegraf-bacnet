@@ -6,6 +6,7 @@ from bacpypes.primitivedata import ObjectIdentifier
 
 from tomlconfig import configclass
 
+
 @configclass
 class ObjectConfig:
     object_identifier: ObjectIdentifier = \
