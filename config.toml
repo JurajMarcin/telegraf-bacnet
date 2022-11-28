@@ -1,0 +1,16 @@
+object_name = "BetelgeuseServ"
+address = "192.168.120.1/24"
+object_identifier = 11
+max_apdu_length_accepted = 1024
+segmentation_supported = "segmentedBoth"
+vendor_identifier = 15
+debug = false
+
+[discovery]
+enabled = true
+
+[[discovery.discovery_group]]
+match_name = "Betel2"
+read_interval = 5
+properties = ["presentValue"]
+cov = true

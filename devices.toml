@@ -1,0 +1,14 @@
+# [[devices]]
+# address = "192.168.120.3"
+# read_multiple = false
+
+# [[devices.objects]]
+# object_identifier = "analogValue:1"
+# cov = true
+# cov_lifetime = 30
+# properties = ["presentValue"]
+
+# [[devices.objects]]
+# object_identifier = "binaryValue:1"
+# interval = 5
+# properties = ["presentValue"]
