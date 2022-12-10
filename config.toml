@@ -1,16 +1,131 @@
-object_name = "BetelgeuseServ"
-address = "192.168.120.1/24"
-object_identifier = 11
-max_apdu_length_accepted = 1024
-segmentation_supported = "segmentedBoth"
-vendor_identifier = 15
-debug = false
+## Show debug output on stderr
+##: bool
+#debug = false
 
-[discovery]
-enabled = true
 
-[[discovery.discovery_group]]
-match_name = "Betel2"
-read_interval = 5
-properties = ["presentValue"]
-cov = true
+# ====================================== #
+# Collecting BACnet device configuration #
+# ====================================== #
+
+# See https://bacpypes.readthedocs.io/en/latest/gettingstarted/gettingstarted001.html#configuring-the-workstation
+# for more information about device options
+
+## Unique device name
+##: str
+#device_name = "TelegrafInput"
+## Unique device identifier
+##: int (0 - 4194303)
+#device_identifier = 11
+## Address of the device including network mask
+##: str
+#address = ""
+## Number of the BACnet network this device is on
+##: int (1 - 65534)
+#network_number = 2000
+## Maximum message size on the network
+##: int (> 50)
+#max_apdu_length_accepted = 1024
+## Allow sefgmentation of larger messages
+##: str
+#segmentation_supported = "segmentedBoth"
+## How this device should identify
+##: int (>= 0)
+#vendor_identifier = 555
+
+
+# ========================= #
+# Default reading intervals #
+# ========================= #
+
+## Default reading interval in seconds
+##: int (>= 0; 0 = read only once)
+#read_interval = 5
+## Default CoV Request lifetime in seconds
+##: int (> 0)
+#cov_lifetime = 300
+
+
+# ================ #
+# Device discovery #
+# ================ #
+
+#[discovery]
+#    # Enable device discovery
+#    #: bool
+#    enabled = false
+#    # Target network to broadcast to
+#    # See https://bacpypes.readthedocs.io/en/latest/tutorial/addressing.html
+#    #: str
+#    target = "*:*"
+#    # Device discovery interval in seconds
+#    #: int (>= 0; 0 = run only once)
+#    discovery_interval = 3600
+#    # Minimum device identifier to discover
+#    #: int
+#    #low_limit =
+#    # Maximum device identifier to discover
+#    #: int
+#    #high_limit =
+
+#    # Example discovery group, multiple can be defined, the first matched is used
+#    [[discovery.discovery_group]]
+#    # Match group using device name
+#    #: str (Python regex)
+#    #match_name =
+#    # Match group using device identifier
+#    #: list[int]
+#    #device_ids =
+#    # Read interval in seconds for these devices
+#    #read_interval =
+#    # Monitor discovered devices using CoV Notifications
+#    #: bool
+#    cov = false
+#    # CoV Request lifetime in seconds for these devices
+#    #: int (> 0)
+#    #cov_lifetime =
+#    # Limit monitored object types
+#    #: list[str]
+#    #object_types =
+#    # Limit monitored properties
+#    #properties =
+
+
+# ============== #
+# Manual devices #
+# ============== #
+
+## Example device, multiple can be defined
+#[[device]]
+#    # Address of the device
+#    #: str
+#    address = ""
+#    # Device identifier for metrics
+#    #: int
+#    #device_identifier =
+#    # Device name for metrics, either name or identifier has to be defined,
+#    # otherwise collected metrics will not be outputed
+#    #: str
+#    # device_name =
+#    # Use ReadPropertyMultiple requests to read from this device
+#    #: bool
+#    read_multiple = true
+#    # Read interval in seconds for this device if object interval is not defined
+#    #: int (>= 0; 0 = read only once)
+
+#    # Example object, multiple can be defined
+#    [[device.objects]]
+#    # Object identifier to monitor
+#    #: str ("objectType:objectInstanceNumber")
+#    object_identifier = ""
+#    # Read interval in seconds for this object
+#    #: int (>= 0; 0 = read only once)
+#    #read_interval =
+#    # Monitor this object using CoV Notifications
+#    #: bool
+#    cov = false
+#    # CoV Request lifetime in seconds for this object
+#    #: int (> 0)
+#    #cov_lifetime =
+#    # Read these properties
+#    #: list[str]
+#    properties = []
