@@ -69,25 +69,25 @@
 
 #    # Example discovery group, multiple can be defined, the first matched is used
 #    [[discovery.discovery_group]]
-#    # Match group using device name
-#    #: str (Python regex)
-#    #match_name =
-#    # Match group using device identifier
-#    #: list[int]
-#    #device_ids =
-#    # Read interval in seconds for these devices
-#    #read_interval =
-#    # Monitor discovered devices using CoV Notifications
-#    #: bool
-#    cov = false
-#    # CoV Request lifetime in seconds for these devices
-#    #: int (> 0)
-#    #cov_lifetime =
-#    # Limit monitored object types
-#    #: list[str]
-#    #object_types =
-#    # Limit monitored properties
-#    #properties =
+#        # Match group using device name
+#        #: str (Python regex)
+#        #match_name =
+#        # Match group using device identifier
+#        #: list[int]
+#        #device_ids =
+#        # Read interval in seconds for these devices
+#        #read_interval =
+#        # Monitor discovered devices using CoV Notifications
+#        #: bool
+#        cov = false
+#        # CoV Request lifetime in seconds for these devices
+#        #: int (> 0)
+#        #cov_lifetime =
+#        # Limit monitored object types
+#        #: list[str]
+#        #object_types =
+#        # Limit monitored properties
+#        #properties =
 
 
 # ============== #
@@ -114,18 +114,18 @@
 
 #    # Example object, multiple can be defined
 #    [[device.objects]]
-#    # Object identifier to monitor
-#    #: str ("objectType:objectInstanceNumber")
-#    object_identifier = ""
-#    # Read interval in seconds for this object
-#    #: int (>= 0; 0 = read only once)
-#    #read_interval =
-#    # Monitor this object using CoV Notifications
-#    #: bool
-#    cov = false
-#    # CoV Request lifetime in seconds for this object
-#    #: int (> 0)
-#    #cov_lifetime =
-#    # Read these properties
-#    #: list[str]
-#    properties = []
+#        # Object identifier to monitor
+#        #: str ("objectType:objectInstanceNumber")
+#        object_identifier = ""
+#        # Read interval in seconds for this object
+#        #: int (>= 0; 0 = read only once)
+#        #read_interval =
+#        # Monitor this object using CoV Notifications
+#        #: bool
+#        cov = false
+#        # CoV Request lifetime in seconds for this object
+#        #: int (> 0)
+#        #cov_lifetime =
+#        # Read these properties
+#        #: list[str]
+#        properties = []
