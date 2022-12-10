@@ -1,42 +1,46 @@
 from argparse import ArgumentParser
 import logging
+from os.path import isdir
 from sys import stderr
 
 from bacpypes.core import run
 
-from tomlconfig import parse
+from tomlconfig import ConfigError, parse
 
 from .app import TelegrafApplication
-from .config import Config, DevicesConfig
+from .config import Config
 
 
-def main():
+_logger = logging.getLogger(__name__)
+
+
+def main() -> None:
     parser = ArgumentParser("Telegraf plugin for BACnet")
     parser.add_argument("--debug", help="Show debug output on stderr",
                         action="store_true", default=False)
-    parser.add_argument("--config", help="Load config from file",
-                        default="config.toml")
-    parser.add_argument("--devices", help="Load devices from file",
-                        default="devices.toml")
-    parser.add_argument("--devices-d", help="Load devices from directory",
-                        default="devices.d")
+    parser.add_argument("--config",
+                        help="Load config from the file CONFIG or load config "
+                        "from files in the directory CONFIG in alphabetical "
+                        "order",
+                        default="/etc/telegrafbacnet")
     args = parser.parse_args()
 
-    config = parse(Config, args.config)
+    try:
+        config = parse(Config, conf_d_path=args.config) \
+            if isdir(args.config) else parse(Config, conf_path=args.config)
+    except FileNotFoundError as ex:
+        raise ConfigError("No configuration!") from ex
     if args.debug:
         config.debug = True
-    devices = parse(DevicesConfig, args.devices, args.devices_d)
 
-    logging.basicConfig(
-        level=logging.DEBUG if config.debug else logging.INFO,
-        stream=stderr
+    log_handler = logging.StreamHandler(stderr)
+    log_handler.setFormatter(
+        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"),
     )
+    _logger.addHandler(log_handler)
+    _logger.setLevel(logging.DEBUG if config.debug else logging.INFO)
 
     app = TelegrafApplication(config)
-    app.register_devices(*devices.device)
+    app.register_devices(*config.device)
 
     run()
-
-
-if __name__ == "__main__":
-    main()

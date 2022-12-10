@@ -11,10 +11,10 @@ from tomlconfig import configclass
 class ObjectConfig:
     object_identifier: ObjectIdentifier = \
         field(default_factory=ObjectIdentifier)
-    interval: int | None = None
+    read_interval: int | None = None
     cov: bool = False
     cov_lifetime: int | None = None
-    properties: tuple[str] = field(default_factory=tuple)
+    properties: tuple[str, ...] = field(default_factory=tuple)
 
     def __str__(self) -> str:
         return f"<Object {self.object_identifier}>"
@@ -29,8 +29,8 @@ class DeviceConfig:
     device_identifier: int | None = None
     device_name: str | None = None
     read_multiple: bool = True
-    interval: int | None = None
-    objects: tuple[ObjectConfig] = field(default_factory=tuple)
+    read_interval: int | None = None
+    objects: tuple[ObjectConfig, ...] = field(default_factory=tuple)
 
     def __str__(self) -> str:
         return f"<Device {self.device_identifier}[{self.device_name}]" \
@@ -41,25 +41,23 @@ class DeviceConfig:
 
 
 @configclass
-class DevicesConfig:
-    device: list[DeviceConfig] = field(default_factory=list)
-
-
-@configclass
 class DiscoveryGroupConfig:
+    """Class representing device discovery group config"""
     match_name: str | None = None
     device_ids: set[int] | None = None
     read_interval: int | None = None
     cov: bool = False
     cov_lifetime: int | None = None
-    object_types: tuple[str] | None = None
-    properties: tuple[str] | None = None
+    object_types: tuple[str, ...] | None = None
+    properties: tuple[str, ...] | None = None
 
 
 @configclass
 class DiscoveryConfig:
+    """Class representing device discovery config"""
     enabled: bool = False
-    target: Address = field(default_factory=lambda: Address("*:*"))
+    target: Address = field(
+        default_factory=lambda: Address("*:*"))  # type: ignore
     discovery_interval: int = 60 * 60
     low_limit: int | None = None
     high_limit: int | None = None
@@ -67,6 +65,10 @@ class DiscoveryConfig:
 
     def get_discovery_group(self, device: DeviceConfig) \
             -> DiscoveryGroupConfig | None:
+        """
+        Returns the discovery group matching the device or None if no group
+        matches
+        """
         for discovery_group in self.discovery_group:
             if device.device_name is not None \
                     and discovery_group.match_name is not None \
@@ -82,13 +84,18 @@ class DiscoveryConfig:
 
 @configclass
 class Config:
-    object_name: str = ""
-    object_identifier: int = 0
+    """Class representing main application config"""
+    device_name: str = "TelegrafInput"
+    device_identifier: int = 11
+    network_number: int = 2000
     address: Address = field(default_factory=Address)
     max_apdu_length_accepted: int = 1024
     segmentation_supported: str = "segmentedBoth"
-    vendor_identifier: int = 15
-    interval: int = 5
-    cov_lifetime: int = 5 * 60
+    vendor_identifier: int = 555
+
     debug: bool = False
+
+    read_interval: int = 5
+    cov_lifetime: int = 5 * 60
     discovery: DiscoveryConfig = field(default_factory=DiscoveryConfig)
+    device: list[DeviceConfig] = field(default_factory=list)

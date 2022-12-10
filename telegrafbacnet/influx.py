@@ -4,6 +4,8 @@ from typing import Any
 
 
 class InfluxLine:
+    """Class representing a single InfluxDB measurement"""
+
     def __init__(self, key: str, value: Any, *tags: tuple[str, Any]) -> None:
         self.key = key
         self.value = value
@@ -12,15 +14,18 @@ class InfluxLine:
 
 
 class InfluxLPR:
+    """Class for printing measurements in InfluxDB Line Protocol format"""
+
     def __init__(self) -> None:
         self.queue: Queue[InfluxLine] = Queue()
         self.print_job = Process(target=self._print_task)
         self.print_job.start()
 
     def print(self, key: str, value: Any, *tags: tuple[str, Any]) -> None:
+        """Adds the measurement to the print queue"""
         self.queue.put(InfluxLine(key, value, *tags))
 
-    def _print_task(self):
+    def _print_task(self) -> None:
         try:
             while True:
                 line = self.queue.get(block=True)

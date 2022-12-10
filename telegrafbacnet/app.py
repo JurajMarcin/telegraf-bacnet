@@ -32,28 +32,30 @@ _logger = logging.getLogger(__name__)
 
 
 class TelegrafApplication(BIPSimpleApplication):
+    """Main BACnet application class"""
+
     def __init__(self, config: Config):
         local_device = LocalDeviceObject(
-            objectName=config.object_name,
-            objectIdentifier=config.object_identifier,
+            objectName=config.device_name,
+            objectIdentifier=config.device_identifier,
             maxApduLengthAccepted=config.max_apdu_length_accepted,
             segmentationSupported=config.segmentation_supported,
             vendorIdentifier=config.vendor_identifier,
         )
         super().__init__(local_device, config.address)
         self.config = config
-        self.devices: dict[Address, DeviceConfig] = dict()
+        self.devices: dict[Address, DeviceConfig] = {}
         self.influx_lpr = InfluxLPR()
         if self.config.discovery.enabled:
             DiscoveryTask(self, self.config.discovery).install_task()
 
     def _print_measurement(self, address: Address,
                            object_identifier: tuple[str, int],
-                           property: str, value: Any,
+                           prop: str, value: Any,
                            index: int | None = None) -> None:
         if address not in self.devices:
-            _logger.warn("Skipping measurement from unknown device %r",
-                         address)
+            _logger.warning("Skipping measurement from unknown device %r",
+                            address)
             return
         device = self.devices[address]
         if device.device_name is None and device.device_identifier is None:
@@ -71,7 +73,7 @@ class TelegrafApplication(BIPSimpleApplication):
             tags.append(("deviceName", device.device_name))
         if index is not None:
             tags.append(("propertyArrayIndex", index))
-        self.influx_lpr.print(property, value, *tags)
+        self.influx_lpr.print(prop, value, *tags)
 
     # Measurements reading
 
@@ -123,11 +125,12 @@ class TelegrafApplication(BIPSimpleApplication):
                 else:
                     value = element.readResult.propertyValue.cast_out(datatype)
 
-                self._print_measurement(apdu.pduSource, apdu.objectIdentifier,
-                                        apdu.propertyIdentifier, value,
+                self._print_measurement(apdu.pduSource,
+                                        result.objectIdentifier,
+                                        element.propertyIdentifier, value,
                                         element.propertyArrayIndex)
 
-    def _process_response_iocb(self, iocb: IOCB, **kwargs: Any) -> None:
+    def _process_response_iocb(self, iocb: IOCB, **_: Any) -> None:
         if iocb.ioError:
             _logger.error("Response IOCB error: %r", iocb.ioError)
             return
@@ -192,18 +195,18 @@ class TelegrafApplication(BIPSimpleApplication):
                     and object_identifier[0] not in \
                     discovery_group.object_types:
                 continue
-            object = ObjectConfig()
-            object.object_identifier = ObjectIdentifier(object_identifier)
-            object.interval = discovery_group.read_interval
-            object.cov = discovery_group.cov
-            object.cov_lifetime = discovery_group.cov_lifetime
-            object.properties = tuple(
+            obj = ObjectConfig()
+            obj.object_identifier = ObjectIdentifier(object_identifier)
+            obj.read_interval = discovery_group.read_interval
+            obj.cov = discovery_group.cov
+            obj.cov_lifetime = discovery_group.cov_lifetime
+            obj.properties = tuple(
                 prop.identifier for prop
                 in get_object_class(object_identifier[0]).properties
                 if discovery_group.properties is None
                 or str(prop.identifier) in discovery_group.properties
             )
-            objects.append(object)
+            objects.append(obj)
         device.objects = tuple(objects)
         self.register_devices(device)
 
@@ -260,21 +263,25 @@ class TelegrafApplication(BIPSimpleApplication):
         iocb.add_callback(self._process_read_device_name_response, device)
         deferred(self.request_io, iocb, "do_IAmRequest")
 
-    def request_io(self, iocb: IOCB, source: str = "(unknown)"):
-        _logger.debug(f"Sending IOCB %r for %r", iocb.args, source)
-        return super().request_io(iocb)
+    def request_io(self, iocb: IOCB, source: str = "(unknown)") -> None:
+        _logger.debug("Sending IOCB %r for %r", iocb.args, source)
+        super().request_io(iocb)
 
     def register_devices(self, *devices: DeviceConfig) -> None:
+        """
+        Registers one or more devices in the application and installs required
+        tasks
+        """
         for device in devices:
             if device.read_multiple \
                     and any(not object.cov for object in device.objects):
                 DeviceReadTask(self, device, self.config,
                                self._process_response_iocb).install_task()
-            for object in device.objects:
-                if object.cov:
-                    SubscribeCOVTask(self, object,
+            for obj in device.objects:
+                if obj.cov:
+                    SubscribeCOVTask(self, obj,
                                      device, self.config).install_task()
                 elif not device.read_multiple:
-                    ObjectReadTask(self, object, device, self.config,
+                    ObjectReadTask(self, obj, device, self.config,
                                    self._process_response_iocb).install_task()
             self.devices[device.address] = device

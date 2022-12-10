@@ -2,7 +2,7 @@ import logging
 from os import getpid
 from random import randint
 from time import time
-from typing import Iterable
+from typing import Callable, Iterable
 
 from bacpypes.apdu import (
     ConfirmedRequestSequence,
@@ -20,8 +20,9 @@ from bacpypes.task import OneShotTask
 from .utils import first
 
 from .config import Config, DeviceConfig, DiscoveryConfig, ObjectConfig
-from .types import ResponseProcessor
 
+
+ResponseProcessor = Callable[[IOCB], None]
 
 _logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class _BaseRecurringTask(OneShotTask):
             super().install_task(delta=self.interval)
 
     def cancel_task(self) -> None:
+        """Forbids the scheduling of the task"""
         _logger.debug("Canceled task %r", self)
         self.cancelled = True
 
@@ -78,9 +80,11 @@ class _BaseIOTask(_BaseRecurringTask):
 
 
 class DeviceReadTask(_BaseIOTask):
+    """Class for reading a BACnet device using ReadPropertyMultipleRequest"""
+
     def __init__(self, io_controller: IOController, device: DeviceConfig,
                  config: Config, callback: ResponseProcessor) -> None:
-        interval = first(device.interval, config.interval)
+        interval = first(device.read_interval, config.read_interval)
         assert interval is not None
         self.device = device
         super().__init__(io_controller, interval, callback=callback)
@@ -107,12 +111,15 @@ class DeviceReadTask(_BaseIOTask):
 
 
 class ObjectReadTask(_BaseIOTask):
-    def __init__(self, io_controller: IOController, object: ObjectConfig,
+    """Class for reading an object with ReadPropertyRequest"""
+
+    def __init__(self, io_controller: IOController, obj: ObjectConfig,
                  device: DeviceConfig, config: Config,
                  callback: ResponseProcessor) -> None:
-        interval = first(object.interval, device.interval, config.interval)
+        interval = first(obj.read_interval, device.read_interval,
+                         config.read_interval)
         assert interval is not None
-        self.object = object
+        self.object = obj
         self.device = device
         super().__init__(io_controller, interval, callback=callback)
 
@@ -132,12 +139,14 @@ class ObjectReadTask(_BaseIOTask):
 
 
 class SubscribeCOVTask(_BaseIOTask):
+    """Class for periodic subscribing to Change of Value notifications"""
+
     def __init__(self, io_controller: IOController,
-                 object: ObjectConfig, device: DeviceConfig, config: Config) \
+                 obj: ObjectConfig, device: DeviceConfig, config: Config) \
             -> None:
-        lifetime = first(object.cov_lifetime, config.cov_lifetime)
+        lifetime = first(obj.cov_lifetime, config.cov_lifetime)
         assert lifetime is not None
-        self.object = object
+        self.object = obj
         self.device = device
         self.config = config
         self.lifetime = lifetime
@@ -153,18 +162,19 @@ class SubscribeCOVTask(_BaseIOTask):
             lifetime=self.lifetime
         )
 
-    def process_subscribe_ack(self, iocb: IOCB, device: DeviceConfig,
-                              object: ObjectConfig) -> None:
+    def _process_subscribe_ack(self, iocb: IOCB, device: DeviceConfig,
+                               obj: ObjectConfig) -> None:
         if iocb.ioError:
-            _logger.error("Failed to subscribe to %r@%r: %r", object, device,
+            _logger.error("Failed to subscribe to %r@%r: %r", obj, device,
                           iocb.ioError)
             self.error_count += 1
         else:
-            _logger.debug("Subsribed to %r@%r", object, device)
+            _logger.debug("Subsribed to %r@%r", obj, device)
             self.error_count = 0
 
     def _add_callback(self, iocb: IOCB) -> None:
-        iocb.add_callback(self.process_subscribe_ack, self.device, self.object)
+        iocb.add_callback(self._process_subscribe_ack, self.device,
+                          self.object)
 
     def __str__(self) -> str:
         return f"<SubscribeCOVTask for {self.object}@{self.device}>"
@@ -174,6 +184,8 @@ class SubscribeCOVTask(_BaseIOTask):
 
 
 class DiscoveryTask(_BaseRecurringTask):
+    """Class for discovering devices on the network using WhoIsRequest"""
+
     def __init__(self, who_is_service: WhoIsIAmServices,
                  config: DiscoveryConfig) -> None:
         self.who_is_service = who_is_service
