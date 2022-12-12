@@ -21,15 +21,17 @@ def main() -> None:
     parser.add_argument("--config",
                         help="Load config from the file CONFIG or load config "
                         "from files in the directory CONFIG in alphabetical "
-                        "order",
-                        default="/etc/telegrafbacnet")
+                        "order")
     args = parser.parse_args()
 
-    try:
-        config = parse(Config, conf_d_path=args.config) \
-            if isdir(args.config) else parse(Config, conf_path=args.config)
-    except FileNotFoundError as ex:
-        raise ConfigError("No configuration!") from ex
+    if args.config is None:
+        config = parse(Config, conf_d_path=args.config)
+    else:
+        try:
+            config = parse(Config, conf_d_path=args.config) \
+                if isdir(args.config) else parse(Config, conf_path=args.config)
+        except FileNotFoundError as ex:
+            raise ConfigError("No configuration!") from ex
     if args.debug:
         config.debug = True
 
