@@ -6,7 +6,7 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}
 dependencies = [
     "bacpypes >= 0.18.6",
-    "tomlconfig @ git+https://github.com/JurajMarcin/tomlconfig.git@1.1.2",
+    # "tomlconfig @ git+https://github.com/JurajMarcin/tomlconfig.git@1.1.2",
 ]
 
 [project.scripts]
