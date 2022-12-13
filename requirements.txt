@@ -10,7 +10,7 @@ mypy-extensions==0.4.3
 platformdirs==2.5.4
 pycodestyle==2.10.0
 pylint==2.15.8
-tomlconfig @ git+https://github.com/JurajMarcin/tomlconfig.git@1.1.1
+tomlconfig @ git+https://github.com/JurajMarcin/tomlconfig.git@1.1.2
 tomli==2.0.1
 tomlkit==0.11.6
 typing_extensions==4.4.0
